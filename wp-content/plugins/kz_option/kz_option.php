@@ -15,10 +15,6 @@ Author URI:   https://github.com/khinezarthwe
 * Class for custom functions. <kzt>
 *======================================================================================
 */
-// function kzoption_style_script() {
-// 	wp_enqueue_style( 'kzOptionStyle', plugin_dir_url( __FILE__ ) . '/css/kz_optioncss.css' );
-// }
-// add_action( 'wp_enqueue_scripts', 'kzoption_style_script' );
 if ( !class_exists( 'KZ_Menu' ) ) {
 class KZ_Menu 
 {
@@ -63,7 +59,6 @@ public function display_option_page()
 		?>
 		<div class="container">  
 			<h2> <span class="dashicons dashicons-thumbs-up"></span>Hello from Khine Zar Custom Menu Page </h2>
-			<h3>You can download the csv file of user custom post.</h3>
 			<?php KZ_Menu::download_fileview(); ?>
 		</div>
 
@@ -90,12 +85,12 @@ public function download_fileview()
     						<?php $user_id = $_POST['user_dropdown'];	
 						}
 				   ?>
-				   
+				   <h2>Please select the checkbox option that you want to save </h2>
+				   	<input type="checkbox" name="downloadoption[]" id = "downloadoption" value="post_title" > Post Title <br>
+  					<input type="checkbox" name="downloadoption[]" id = "downloadoption" value="post_content"> Post Conent<br>
+  					<input type="checkbox" name="downloadoption[]" id = "downloadoption" value="comment_count"> Numbers Comments<br>
 
-				    <!-- <input type="checkbox" name="downloadoption[]" id = "downloadoption" value="comments"> Numbers Comments<br>
-  					<input type="checkbox" name="downloadoption[]" id = "downloadoption" value="Post"> Post Conent<br>
-  					<input type="checkbox" name="downloadoption[]" id = "downloadoption"value="Posttitle" > Post Title<br>
-  					<br> -->
+  					<br> 
 				   <input type="submit" name="submit"  class="button button-primary button-large" value="Download the Data" />
 
 				</form>
@@ -110,27 +105,28 @@ public function download_fileview()
 */
 public function kz_csv_export($user_id) 
 	{ 	//export function
-		die();
+
 		$filename = 'user_' . $user_id . 'data.csv';
-		$header_row = array(
-					0 => 'Post Title',
-					1 => 'Post Content',
-					2 => 'Total Comment on this Post',
-				);
+		$header_row = array();
+		foreach($_POST['downloadoption'] as $header ){
+			$header_row[] = $header;
+		}
 
 		$data_rows = array();
 		global $wpdb;
 		$post_by_user = $wpdb->get_results( "SELECT post_title,post_content,comment_count FROM {$wpdb->posts} WHERE post_author={$user_id}");
 
 		if(!empty($post_by_user)){
- 				foreach ( $post_by_user as $u  ) {
+ 				foreach ( $post_by_user as $u  ) 
+ 				{
 					$row = array();
-					$row[0] = strip_tags($u->post_title);
-					$row[1] = strip_tags($u->post_content);
-					$row[2] = strip_tags($u->comment_count);
+						foreach ($header_row as $header)
+						{
+							$row[$header] = strip_tags($u->$header);
+						}
 					$data_rows[] = $row;
 				}
-
+					
 		header('Content-Type: text/csv');
         header('Content-Disposition: attachment; filename=' . $filename);
 		$fh = fopen('php://output','wb');
